@@ -1,5 +1,3 @@
-# src/scoring/privacy_score.py
-
 def get_exposure(value):
     """
     Determine the exposure level of a given value.
