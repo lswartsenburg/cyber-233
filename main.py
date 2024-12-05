@@ -19,6 +19,7 @@ def main(
 
     twitter_data = twitter_api.get_normalized_user_data(twitter_username)
     instagram_data = instagram_api.get_normalized_user_data(instagram_username)
+    print("Done!")
 
 
 if __name__ == "__main__":

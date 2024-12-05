@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch main.py",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "jeremyclarkson1"
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
