@@ -2,6 +2,7 @@ import os
 import json
 import tweepy
 from dotenv import load_dotenv
+from lib.cache_return_to_file import file_cache
 
 
 class TwitterAPI:
@@ -12,6 +13,7 @@ class TwitterAPI:
         """Initialize the Twitter API client."""
         return tweepy.Client(bearer_token=token)
 
+    @file_cache()
     def fetch_user_info(self, username):
         """Fetch detailed user information from Twitter."""
         try:
@@ -44,6 +46,7 @@ class TwitterAPI:
             print(f"Error fetching user info: {e}")
             return None
 
+    @file_cache()
     def fetch_recent_tweets(self, user_id, max_results=5):
         """Fetch recent tweets of a user by user ID."""
         try:
