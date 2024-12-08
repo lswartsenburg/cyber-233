@@ -3,69 +3,77 @@ import json
 import tweepy
 from dotenv import load_dotenv
 from lib.cache_return_to_file import file_cache
+from models.normalized_data import NormalizedData
+
+
+@file_cache()
+def fetch_user_info(token, username):
+    """Fetch detailed user information from Twitter."""
+    client = tweepy.Client(bearer_token=token)
+    try:
+        user = client.get_user(
+            username=username,
+            user_fields=[
+                "id",
+                "name",
+                "username",
+                "location",
+                "description",
+                "public_metrics",
+            ],
+        )
+        if user.data:
+            return {
+                "id": user.data.id,
+                "name": user.data.name,
+                "username": user.data.username,
+                "location": user.data.location,
+                "description": user.data.description,
+                "followers_count": user.data.public_metrics["followers_count"],
+                "following_count": user.data.public_metrics["following_count"],
+                "tweet_count": user.data.public_metrics["tweet_count"],
+            }
+        else:
+            print(f"User '{username}' not found.")
+            return None
+    except tweepy.TweepyException as e:
+        print(f"Error fetching user info: {e}")
+        return None
+
+
+@file_cache()
+def fetch_recent_tweets(token, user_id, max_results=5):
+    """Fetch recent tweets of a user by user ID."""
+    client = tweepy.Client(bearer_token=token)
+    try:
+        tweets = client.get_users_tweets(
+            id=user_id,
+            max_results=max_results,
+            tweet_fields=["id", "text", "created_at"],
+        )
+        if tweets.data:
+            return [
+                {"id": tweet.id, "text": tweet.text, "created_at": tweet.created_at}
+                for tweet in tweets.data
+            ]
+        else:
+            print(f"No tweets found for user ID '{user_id}'.")
+            return []
+    except tweepy.TweepyException as e:
+        print(f"Error fetching tweets: {e}")
+        return []
 
 
 class TwitterAPI:
     def __init__(self, token):
-        self.client = self.init_client(token)
+        self.token = token
 
-    def init_client(self, token):
-        """Initialize the Twitter API client."""
-        return tweepy.Client(bearer_token=token)
-
-    @file_cache()
-    def fetch_user_info(self, username):
+    def get_user_info(self, username):
         """Fetch detailed user information from Twitter."""
-        try:
-            user = self.client.get_user(
-                username=username,
-                user_fields=[
-                    "id",
-                    "name",
-                    "username",
-                    "location",
-                    "description",
-                    "public_metrics",
-                ],
-            )
-            if user.data:
-                return {
-                    "id": user.data.id,
-                    "name": user.data.name,
-                    "username": user.data.username,
-                    "location": user.data.location,
-                    "description": user.data.description,
-                    "followers_count": user.data.public_metrics["followers_count"],
-                    "following_count": user.data.public_metrics["following_count"],
-                    "tweet_count": user.data.public_metrics["tweet_count"],
-                }
-            else:
-                print(f"User '{username}' not found.")
-                return None
-        except tweepy.TweepyException as e:
-            print(f"Error fetching user info: {e}")
-            return None
+        return fetch_user_info(self.token, username)
 
-    @file_cache()
-    def fetch_recent_tweets(self, user_id, max_results=5):
-        """Fetch recent tweets of a user by user ID."""
-        try:
-            tweets = self.client.get_users_tweets(
-                id=user_id,
-                max_results=max_results,
-                tweet_fields=["id", "text", "created_at"],
-            )
-            if tweets.data:
-                return [
-                    {"id": tweet.id, "text": tweet.text, "created_at": tweet.created_at}
-                    for tweet in tweets.data
-                ]
-            else:
-                print(f"No tweets found for user ID '{user_id}'.")
-                return []
-        except tweepy.TweepyException as e:
-            print(f"Error fetching tweets: {e}")
-            return []
+    def get_recent_tweets(self, user_id, max_results=5):
+        return fetch_recent_tweets(self.token, user_id, max_results)
 
     def normalize_twitter_data(self, user_info):
         """
@@ -97,7 +105,7 @@ class TwitterAPI:
         Returns:
             dict: Normalized user data, or None if the user is not found.
         """
-        user_info = self.fetch_user_info(username)
+        user_info = self.get_user_info(username)
 
         if user_info:
             normalized_data = self.normalize_twitter_data(user_info)
@@ -116,7 +124,7 @@ class TwitterAPI:
             dict: A dictionary with firstName and lastName, or None if not found.
         """
         try:
-            user_info = self.fetch_user_info(username)
+            user_info = self.get_user_info(username)
             if user_info and user_info.get("name"):
                 full_name = user_info["name"]
                 # Split full name into first and last name
@@ -142,10 +150,10 @@ class TwitterAPI:
 def main():
     api = TwitterAPI(token=os.getenv("TWITTER_BEARER_TOKEN"))
     username = "pge444"
-    user_info = api.fetch_user_info(username)
+    user_info = api.get_user_info(username)
     if user_info:
         print(f"User Info: {user_info}")
-        tweets = api.fetch_recent_tweets(user_info["id"])
+        tweets = api.get_recent_tweets(user_info["id"])
         if tweets:
             print(f"Recent Tweets: {tweets}")
         result = {

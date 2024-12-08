@@ -6,7 +6,9 @@
             "name": "Launch main.py",
             "program": "${workspaceFolder}/main.py",
             "args": [
-                "jeremyclarkson1"
+                "jeremyclarkson1",
+                "--twitter-username-override",
+                "JeremyClarkson"
             ],
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env"
