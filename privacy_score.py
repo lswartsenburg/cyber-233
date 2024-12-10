@@ -13,7 +13,7 @@ def calculate_risk(weights, data):
         total_risk += exposure * weight
     return total_risk
 
-def calculate_privacy_score(user_info, platform):
+def calculate_overall_privacy_score(all_user_info):
     weights = {
         "YouTube": {
             "id": 5,
@@ -41,15 +41,37 @@ def calculate_privacy_score(user_info, platform):
         "Twitter": {
             "id": 5,
             "name": 10,
-            "username": 5,
-            "location": 20,
+            "location": 25,
             "bio": 10,
+            "connections": 15,
+        },
+        "LinkedIn": {
+            "id": 5,
+            "name": 10,
+            "email": 15,
+            "number": 20,
+            "headline": 20,  # job
+            "location": 25,
+            "education": 15,
             "connections": 15,
         },
     }
 
-    platform_weights = weights.get(platform, {})
-    max_risk = sum(platform_weights.values()) * 2
-    total_risk = calculate_risk(platform_weights, user_info)
-    privacy_score = 100 - (total_risk / max_risk * 100)
+    total_risk = 0
+    max_risk = 0
+    platforms_found = 0
+
+    for platform, user_info in all_user_info.items():
+        platform_weights = weights.get(platform, {})
+        if user_info:  # If user is found on this platform
+            platforms_found += 1
+            total_risk += calculate_risk(platform_weights, user_info)
+        max_risk += sum(platform_weights.values()) * 2
+
+    if platforms_found == 0:
+        return 100.0  # Full privacy score if user is not found anywhere
+
+    # Adjust score based on platforms found
+    normalized_risk = total_risk / max_risk
+    privacy_score = 100 - (normalized_risk * 100)
     return round(privacy_score, 2)
