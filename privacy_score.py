@@ -6,6 +6,7 @@ def get_exposure(value):
     else:  # Publicly exposed
         return 2
 
+
 def calculate_risk(weights, data):
     total_risk = 0
     for field, weight in weights.items():
@@ -13,9 +14,10 @@ def calculate_risk(weights, data):
         total_risk += exposure * weight
     return total_risk
 
+
 def calculate_overall_privacy_score(all_user_info):
     weights = {
-        "YouTube": {
+        "youtube": {
             "id": 5,
             "snippet": 10,
             "location": 25,
@@ -24,35 +26,33 @@ def calculate_overall_privacy_score(all_user_info):
             "privacyStatus": 10,
             "isLinked": 5,
         },
-        "Reddit": {
+        "reddit": {
             "username": 10,
             "user_id": 5,
             "account_created": 5,
             "is_employee": 5,
             "is_moderator": 10,
         },
-        "Instagram": {
+        "instagram": {
             "id": 5,
             "username": 10,
             "bio": 10,
             "connections": 15,
             "profile_picture": 5,
         },
-        "Twitter": {
+        "twitter": {
             "id": 5,
             "name": 10,
             "location": 25,
             "bio": 10,
             "connections": 15,
         },
-        "LinkedIn": {
-            "id": 5,
+        "linkedIn": {
+            "username": 5,
             "name": 10,
-            "email": 15,
-            "number": 20,
-            "headline": 20,  # job
-            "location": 25,
-            "education": 15,
+            "address": 20,
+            "bio": 15,
+            "followers": 15,
             "connections": 15,
         },
     }

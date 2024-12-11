@@ -4,6 +4,22 @@ from dotenv import load_dotenv
 from lib.cache_return_to_file import file_cache
 
 
+@file_cache()
+def fetch_user_details(access_token, base_url, user_agent, username):
+    url = f"{base_url}/user/{username}/about"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "User-Agent": user_agent,
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.json()["data"]
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching user details: {e}")
+        return None
+
+
 class RedditAPI:
     BASE_URL = "https://oauth.reddit.com"
 
@@ -23,6 +39,7 @@ class RedditAPI:
                 auth=auth,
                 data=data,
                 headers=headers,
+                timeout=10,
             )
             response.raise_for_status()
             return response.json()["access_token"]
@@ -30,24 +47,14 @@ class RedditAPI:
             print(f"Error obtaining access token: {e}")
             return None
 
-    @file_cache()
     def fetch_user_details(self, username):
         if not self.access_token:
             print("Access token is missing. Unable to fetch user details.")
             return None
 
-        url = f"{self.BASE_URL}/user/{username}/about"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "User-Agent": self.user_agent,
-        }
-        try:
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            return response.json()["data"]
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching user details: {e}")
-            return None
+        return fetch_user_details(
+            self.access_token, self.BASE_URL, self.user_agent, username
+        )
 
     def normalize_reddit_data(self, user_data):
         if not user_data:

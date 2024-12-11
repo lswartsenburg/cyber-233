@@ -3,7 +3,7 @@
         {
             "type": "debugpy",
             "request": "launch",
-            "name": "Launch main.py",
+            "name": "Jeremy Clarkson",
             "program": "${workspaceFolder}/main.py",
             "args": [
                 "jeremyclarkson1",
@@ -12,6 +12,17 @@
             ],
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env"
-        }
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Scott Galloway",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "profgalloway",
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }

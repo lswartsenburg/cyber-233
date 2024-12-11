@@ -5,35 +5,50 @@ import pickle
 from dotenv import load_dotenv
 from lib.cache_return_to_file import file_cache
 
+
+def search_channel_by_username(user, params, url):
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        items = response.json().get("items", [])
+        if items:
+            return items[0]["snippet"]["channelId"]
+        else:
+            print(f"No channel found for username: {user}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error searching for channel: {e}")
+        return None
+
+
+@file_cache()
+def fetch_channel_details(params, url):
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json().get("items", [])
+        return data[0] if data else None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching channel details: {e}")
+        return None
+
+
 class YouTubeAPI:
     def __init__(self, api_key):
         self.api_key = api_key
         self.base_url = "https://www.googleapis.com/youtube/v3"
 
-    @file_cache()
-    def search_channel_by_username(self, username):
+    def search_channel_by_username(self, user):
         url = f"{self.base_url}/search"
         params = {
             "part": "snippet",
-            "q": username,
+            "q": user,
             "type": "channel",
             "key": self.api_key,
             "maxResults": 1,
         }
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            items = response.json().get("items", [])
-            if items:
-                return items[0]["snippet"]["channelId"]
-            else:
-                print(f"No channel found for username: {username}")
-                return None
-        except requests.exceptions.RequestException as e:
-            print(f"Error searching for channel: {e}")
-            return None
+        return search_channel_by_username(user, params, url)
 
-    @file_cache()
     def fetch_channel_details(self, channel_id):
         url = f"{self.base_url}/channels"
         params = {
@@ -41,14 +56,7 @@ class YouTubeAPI:
             "id": channel_id,
             "key": self.api_key,
         }
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            data = response.json().get("items", [])
-            return data[0] if data else None
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching channel details: {e}")
-            return None
+        return fetch_channel_details(params, url)
 
     def normalize_youtube_data(self, channel_data):
         if not channel_data:
@@ -63,9 +71,9 @@ class YouTubeAPI:
             "title": snippet.get("title"),
             "description": snippet.get("description"),
             "statistics": {
-            "subscriber_count": statistics.get("subscriberCount"),
-            "view_count": statistics.get("viewCount"),
-            "video_count": statistics.get("videoCount"),
+                "subscriber_count": statistics.get("subscriberCount"),
+                "view_count": statistics.get("viewCount"),
+                "video_count": statistics.get("videoCount"),
             },
             "contentDetails": content_details,
             "location": snippet.get("country"),

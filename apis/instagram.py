@@ -1,6 +1,5 @@
 import requests
 import json
-import httpx
 from lib.cache_return_to_file import file_cache
 from models.normalized_data import NormalizedData
 
@@ -32,7 +31,29 @@ class InstagramAPI:
 
     def normalize_instagram_data(self, data: dict) -> NormalizedData:
         """Normalize Instagram user data"""
-        return NormalizedData(**data)
+        name = data.get("full_name")
+        username = data.get("username")
+        location = data.get("location")  # May be None if not present
+        bio = data.get("biography")
+        profile_picture = data.get("profile_pic_url")
+        email = data.get(
+            "business_email"
+        )  # This key may not be present if not a business account
+        followers_count = data.get("edge_followed_by", {}).get("count")
+        following_count = data.get("edge_follow", {}).get("count")
+        post_count = data.get("edge_owner_to_timeline_media", {}).get("count")
+        normalized_data = NormalizedData(
+            name=name,
+            username=username,
+            location=location,
+            bio=bio,
+            profile_picture=profile_picture,
+            email=email,
+            followers_count=followers_count,
+            following_count=following_count,
+            post_count=post_count,
+        )
+        return normalized_data
 
     def get_normalized_user_data(self, username: str) -> NormalizedData:
         data = self.get_user(username)
